@@ -16,7 +16,7 @@ st.title("Dataset")
 
 #PATH 
 BASE_DIR = Path(__file__).resolve().parents[1]
-DATA_DIR = BASE_DIR / "Data"
+DATA_DIR = BASE_DIR / "data"
 RAW_PATH = DATA_DIR / "raw_data.csv"
 CLEAN_PATH = DATA_DIR / "clean_data.csv"
 RFM_PATH = DATA_DIR / "rfm.csv"
