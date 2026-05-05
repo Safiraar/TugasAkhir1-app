@@ -20,5 +20,5 @@ def render_sidebar():
 
         st.divider()
 
-        st.caption("Safira Aulia Rahma")
+        st.caption("Nama: Safira Aulia Rahma")
         st.caption("NIM: 4611422125")
