@@ -31,3 +31,6 @@ st.write("**Program Studi:** Teknik Informatika")
 st.write("**Fakultas:** Fakultas Matematika dan Ilmu Pengetahuan Alam")
 st.write("**Universitas:** Universitas Negeri Semarang")
 st.write("**Tahun:** 2026")
+
+st.write("")
+st.write("**Dosen Pembimbing** : Endang Sugiharti S.Si., M.Kom.")
