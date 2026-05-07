@@ -39,14 +39,15 @@ def mulai_ulang():
 
 st.title("Prediksi Klaster Pelanggan")
 
-st.markdown("""
-            Halaman ini digunakan untuk **memprediksi klaster pelanggan** dari data 
-            seorang pelanggan Transjakarta berdasarkan model RFM. 
+st.info("Halaman ini digunakan untuk **memprediksi klaster pelanggan** dari data " \
+"seorang pelanggan Transjakarta berdasarkan model RFM.")
+
+st.info("""
             Masukan data pelanggan pada kolom di bawah ini, lalu tekan tombol **prediksi**
             untuk mengetahui klaster dari pelanggan tersebut
             """)
 
-#Input User
+#Input User ver1
 col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown("**Recency (hari)**")
@@ -60,10 +61,25 @@ with col2:
 
 with col3:
     st.markdown("**Monetary (Rp)**")
-    st.caption("Total keseluruhan uang yang telah dikeluarkan (dalam Rupiah)")
+    st.caption("Total keseluruhan uang yang telah dikeluarkan")
     monetary = st.number_input("Monetary (Rp)", min_value=0, key="monetary", label_visibility="collapsed")
 
 st.divider()
+
+# #Input user ver 2
+# st.markdown("**Recency (hari)**")
+# st.caption("Jumlah hari sejak transaksi terakhir pelanggan")
+# recency = st.number_input("Recency (hari)", min_value=0, key="recency", label_visibility="collapsed")
+
+# st.markdown("**Frequency (transaksi)**")
+# st.caption("Total jumlah transaksi yang pernah dilakukan")
+# frequency = st.number_input("Frequency (transaksi)", min_value=0, key="frequency", label_visibility="collapsed")
+
+# st.markdown("**Monetary (Rp)**")
+# st.caption("Total keseluruhan uang yang telah dikeluarkan (dalam Rupiah)")
+# monetary = st.number_input("Monetary (Rp)", min_value=0, key="monetary", label_visibility="collapsed")
+
+# st.divider()
 
 # # Input user — key sama dengan nama session_state
 # recency   = st.number_input("Recency (hari)",        min_value=0, key="recency")
