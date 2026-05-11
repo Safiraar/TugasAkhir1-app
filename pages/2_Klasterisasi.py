@@ -4,7 +4,6 @@ import joblib
 import numpy as np
 import matplotlib.pyplot as plt
 
-from sklearn.metrics import silhouette_score, davies_bouldin_score
 from utils.sidebar import render_sidebar, ASSETS_DIR
 
 st.set_page_config(
@@ -15,84 +14,67 @@ st.set_page_config(
 
 render_sidebar()
 
-# Memuat model dan scaler yang sudah disimpan
-kmeans = joblib.load("model/kmeans.pkl")
-kmeans_pso = joblib.load("model/kmeans_pso.pkl")
-scaler = joblib.load("model/scaler.pkl")
+# ──────────────────────────────────────────
+# LOAD DATA DARI JOBLIB
+# ──────────────────────────────────────────
+hasil_kmeans     = joblib.load("model/hasil_kmeans.pkl")
+hasil_kmeans_pso = joblib.load("model/hasil_kmeans_pso.pkl")
 
-# Fungsi untuk klasterisasi dan evaluasi
-def run_clustering(model, data, original_df, scaler):
-    labels = model.predict(data)
-    
-    silhouette = silhouette_score(data, labels)
-    dbi = davies_bouldin_score(data, labels)
+# K-Means
+silhouette_kmeans        = hasil_kmeans['silhouette_score']
+dbi_kmeans               = hasil_kmeans['dbi']
+cluster_counts_kmeans    = hasil_kmeans['jumlah_anggota']
+centroid_scaled_kmeans   = hasil_kmeans['centroid_scaled']
+centroid_asli_kmeans     = hasil_kmeans['centroid_asli']
+df_kmeans                = hasil_kmeans['hasil_klaster']
+rfm_scaled_kmeans        = hasil_kmeans['rfm_scaled']
 
-    unique, counts = np.unique(labels, return_counts=True)
+# K-Means PSO
+silhouette_kmeans_pso        = hasil_kmeans_pso['silhouette_score']
+dbi_kmeans_pso               = hasil_kmeans_pso['dbi']
+cluster_counts_kmeans_pso    = hasil_kmeans_pso['jumlah_anggota']
+centroid_scaled_kmeans_pso   = hasil_kmeans_pso['centroid_scaled']
+centroid_asli_kmeans_pso     = hasil_kmeans_pso['centroid_asli']
+df_kmeans_pso                = hasil_kmeans_pso['hasil_klaster']
+rfm_scaled_kmeans_pso        = hasil_kmeans_pso['rfm_scaled']
 
-    cluster_counts_df = pd.DataFrame({
-        "Cluster": [int(i) + 1 for i in unique],
-        "Jumlah Data": [int(j) for j in counts]
-    })
-    centroids = model.cluster_centers_
-
-    #Centroid 
-    centroid_df = pd.DataFrame(
-        centroids, 
-        columns=original_df.columns
-        )
-    centroid_df.insert(0, "Cluster", range(1, len(centroid_df) + 1))
-    
-    # Centroid skala asli 
-    centroid_asli_df = pd.DataFrame(
-        scaler.inverse_transform(centroids),
-        columns=original_df.columns
-    )
-    centroid_asli_df.insert(0, "Cluster", range(1, len(centroid_asli_df) + 1))
-
-    original_df['Klaster'] = labels + 1
-
-    return labels, silhouette, dbi, cluster_counts_df, centroid_df, centroid_asli_df
-
-# Memuat data
-df = pd.read_csv('data/rfm.csv')
-data_scaled = scaler.transform(df)
-
-# Silhouette score untuk penentuan jumlah klaster
+# ──────────────────────────────────────────
+# DATA PENENTUAN JUMLAH KLASTER
+# ──────────────────────────────────────────
 silhouette_scores = {
     "Klaster": [2, 3, 4, 5, 6, 7, 8],
     "Silhouette Score": [0.555, 0.651, 0.705, 0.639, 0.724, 0.729, 0.613]
 }
 silhouette_df = pd.DataFrame(silhouette_scores)
 
-# Jalankan clustering SEMUA metode sebelum blok if metode
-df_kmeans = df.copy()
-cluster_kmeans, silhouette_kmeans, dbi_kmeans, cluster_counts_kmeans, centroid_positions_kmeans, centroid_asli_kmeans = run_clustering(kmeans, data_scaled, df_kmeans, scaler)
-
-df_kmeans_pso = df.copy()
-cluster_kmeans_pso, silhouette_kmeans_pso, dbi_kmeans_pso, cluster_counts_kmeans_pso, centroid_positions_kmeans_pso, centroid_asli_kmeans_pso = run_clustering(kmeans_pso, data_scaled, df_kmeans_pso, scaler)
-
-
+# ──────────────────────────────────────────
+# JUDUL
+# ──────────────────────────────────────────
 st.title("Klasterisasi")
 
-# Penentuan jumlah klaster
-with st.container(border=True): 
+# ──────────────────────────────────────────
+# PENENTUAN JUMLAH KLASTER
+# ──────────────────────────────────────────
+with st.container(border=True):
     st.success("Jumlah klaster yang digunakan adalah 7")
 
     with st.expander("Lihat selengkapnya"):
         st.write("")
         kiri, kanan = st.columns([1, 1.4], gap="medium")
 
-        with kiri: 
+        with kiri:
             st.write("Hasil perhitungan Silhouette Score")
             st.dataframe(silhouette_df)
-        
-        with kanan: 
+
+        with kanan:
             jumlah_klaster = ASSETS_DIR / "jumlah_klaster.png"
             st.image(str(jumlah_klaster), use_container_width=True)
-            
-        st.info("Gunakan jumlah klaster yang memiliki nilai silhouette score terbesar")
 
-# Pilihan metode
+        st.info("Gunakan jumlah klaster yang memiliki nilai Silhouette Score terbesar")
+
+# ──────────────────────────────────────────
+# PILIHAN METODE
+# ──────────────────────────────────────────
 st.write("")
 metode = st.selectbox(
     "**Pilih metode klasterisasi**",
@@ -100,47 +82,51 @@ metode = st.selectbox(
     index=0
 )
 
-# K-Means
+# ──────────────────────────────────────────
+# K-MEANS
+# ──────────────────────────────────────────
 if metode == "K-Means":
     st.subheader("K-Means")
 
     m1, m2 = st.columns(2)
     m1.metric("Silhouette Score", f"{silhouette_kmeans:.3f}")
     m2.metric("DBI", f"{dbi_kmeans:.3f}")
-    
+
     kiri, kanan = st.columns([1, 1], gap="medium")
+
     with kiri:
-        with st.container():
-            st.write("**Jumlah Anggota Setiap Klaster K-Means:**")
-            st.write(cluster_counts_kmeans)
-    
+        st.write("**Jumlah Anggota Setiap Klaster K-Means:**")
+        st.dataframe(cluster_counts_kmeans, use_container_width=True)
+
     with kanan:
-        with st.container():
-            st.write("**Visualisasi 3D Hasil Klasterisasi K-Means**")
+        st.write("**Visualisasi 3D Hasil Klasterisasi K-Means**")
 
-            fig = plt.figure(figsize=(10, 7))
-            ax = fig.add_subplot(111, projection='3d')
+        fig = plt.figure(figsize=(10, 7))
+        ax = fig.add_subplot(111, projection='3d')
 
-            scatter = ax.scatter(
-                df_kmeans['Recency'], df_kmeans['Frequency'], df_kmeans['Monetary'],
-                c=cluster_kmeans, cmap='viridis'
-            )
-            ax.set_xlabel('Recency')
-            ax.set_ylabel('Frequency')
-            ax.set_zlabel('Monetary')
-            ax.set_title('Visualisasi 3D K-Means')
+        scatter = ax.scatter(
+            rfm_scaled_kmeans['Recency'],
+            rfm_scaled_kmeans['Frequency'],
+            rfm_scaled_kmeans['Monetary'],
+            c=rfm_scaled_kmeans['Klaster'],
+            cmap='viridis'
+        )
+        ax.set_xlabel('Recency')
+        ax.set_ylabel('Frequency')
+        ax.set_zlabel('Monetary')
+        ax.set_title('Visualisasi 3D K-Means')
 
-            handles, labels = scatter.legend_elements()
-            labels = [str(i + 1) for i in range(len(handles))]
-            ax.legend(handles, labels, title="Klaster", loc='upper left', bbox_to_anchor=(1, 1.1))
+        handles, labels_legend = scatter.legend_elements()
+        labels_legend = [str(i + 1) for i in range(len(handles))]
+        ax.legend(handles, labels_legend, title="Klaster", loc='upper left', bbox_to_anchor=(1, 1.1))
 
-            st.pyplot(fig)
+        st.pyplot(fig)
 
-    st.write("**Posisi Centroid Setiap Klaster K-Means:**")
-    st.write(centroid_positions_kmeans.round(3))
+    st.write("**Posisi Centroid Setiap Klaster K-Means (Scaled):**")
+    st.dataframe(centroid_scaled_kmeans.round(3), use_container_width=True)
 
-    st.write("**Posisi Centroid Skala Asli K-Means:**")
-    st.write(centroid_asli_kmeans.round(3))
+    st.write("**Posisi Centroid Setiap Klaster K-Means (Skala Asli):**")
+    st.dataframe(centroid_asli_kmeans.round(3), use_container_width=True)
 
     st.write("")
     st.write("**Hasil Klasterisasi K-Means**")
@@ -152,47 +138,51 @@ if metode == "K-Means":
     )
     st.dataframe(df_kmeans.head(jumlah_tampil_kmeans), use_container_width=True)
 
-# K-Means PSO
+# ──────────────────────────────────────────
+# K-MEANS OPTIMASI PSO
+# ──────────────────────────────────────────
 if metode == "K-Means Optimasi PSO":
     st.subheader("K-Means Optimasi PSO")
 
     m1, m2 = st.columns(2)
     m1.metric("Silhouette Score", f"{silhouette_kmeans_pso:.3f}")
     m2.metric("DBI", f"{dbi_kmeans_pso:.3f}")
-    
+
     kiri, kanan = st.columns([1, 1], gap="medium")
+
     with kiri:
-        with st.container():
-            st.write("**Jumlah Anggota Setiap Klaster K-Means Optimasi PSO:**")
-            st.write(cluster_counts_kmeans_pso)
-    
+        st.write("**Jumlah Anggota Setiap Klaster K-Means Optimasi PSO:**")
+        st.dataframe(cluster_counts_kmeans_pso, use_container_width=True)
+
     with kanan:
-        with st.container():
-            st.write("**Visualisasi 3D Hasil Klasterisasi K-Means Optimasi PSO**")
+        st.write("**Visualisasi 3D Hasil Klasterisasi K-Means Optimasi PSO**")
 
-            fig = plt.figure(figsize=(10, 7))
-            ax = fig.add_subplot(111, projection='3d')
+        fig = plt.figure(figsize=(10, 7))
+        ax = fig.add_subplot(111, projection='3d')
 
-            scatter = ax.scatter(
-                df_kmeans_pso['Recency'], df_kmeans_pso['Frequency'], df_kmeans_pso['Monetary'],
-                c=cluster_kmeans_pso, cmap='viridis'
-            )
-            ax.set_xlabel('Recency')
-            ax.set_ylabel('Frequency')
-            ax.set_zlabel('Monetary')
-            ax.set_title('Visualisasi 3D K-Means Optimasi PSO')
+        scatter = ax.scatter(
+            rfm_scaled_kmeans_pso['Recency'],
+            rfm_scaled_kmeans_pso['Frequency'],
+            rfm_scaled_kmeans_pso['Monetary'],
+            c=rfm_scaled_kmeans_pso['Klaster'],
+            cmap='viridis'
+        )
+        ax.set_xlabel('Recency')
+        ax.set_ylabel('Frequency')
+        ax.set_zlabel('Monetary')
+        ax.set_title('Visualisasi 3D K-Means Optimasi PSO')
 
-            handles, labels = scatter.legend_elements()
-            labels = [str(i + 1) for i in range(len(handles))]
-            ax.legend(handles, labels, title="Klaster", loc='upper left', bbox_to_anchor=(1, 1.1))
+        handles, labels_legend = scatter.legend_elements()
+        labels_legend = [str(i + 1) for i in range(len(handles))]
+        ax.legend(handles, labels_legend, title="Klaster", loc='upper left', bbox_to_anchor=(1, 1.1))
 
-            st.pyplot(fig)
+        st.pyplot(fig)
 
-    st.write("**Posisi Centroid Setiap Klaster K-Means Optimasi PSO:**")
-    st.write(centroid_positions_kmeans_pso.round(3))
+    st.write("**Posisi Centroid Setiap Klaster K-Means Optimasi PSO (Scaled):**")
+    st.dataframe(centroid_scaled_kmeans_pso.round(3), use_container_width=True)
 
-    st.write("**Posisi Centroid Skala Asli K-Means Optimasi PSO:**")
-    st.write(centroid_asli_kmeans_pso.round(3))
+    st.write("**Posisi Centroid Setiap Klaster K-Means Optimasi PSO (Skala Asli):**")
+    st.dataframe(centroid_asli_kmeans_pso.round(3), use_container_width=True)
 
     st.write("")
     st.write("**Hasil Klasterisasi K-Means Optimasi PSO**")
@@ -204,7 +194,9 @@ if metode == "K-Means Optimasi PSO":
     )
     st.dataframe(df_kmeans_pso.head(jumlah_tampil_kmeans_pso), use_container_width=True)
 
-# Perbandingan
+# ──────────────────────────────────────────
+# PERBANDINGAN
+# ──────────────────────────────────────────
 if metode == "Perbandingan":
     st.subheader("Perbandingan Hasil Klasterisasi")
 
@@ -226,7 +218,6 @@ if metode == "Perbandingan":
 
     st.write("")
 
-    # Visualisasi
     kiri, kanan = st.columns(2, gap="small")
 
     with kiri:
@@ -239,7 +230,6 @@ if metode == "Perbandingan":
                 [silhouette_kmeans, silhouette_kmeans_pso],
                 color=['red', 'green']
             )
-            # Tampilkan angka di atas setiap bar
             for bar in bars:
                 ax_sil.text(
                     bar.get_x() + bar.get_width() / 2,
@@ -263,7 +253,6 @@ if metode == "Perbandingan":
                 [dbi_kmeans, dbi_kmeans_pso],
                 color=['red', 'green']
             )
-            # Tampilkan angka di atas setiap bar
             for bar in bars:
                 ax_dbi.text(
                     bar.get_x() + bar.get_width() / 2,
@@ -277,19 +266,18 @@ if metode == "Perbandingan":
             ax_dbi.set_ylim(0, 1)
             st.pyplot(fig_dbi)
 
-    # Keterangan
     st.write("")
     with st.container(border=True):
         st.subheader("Keterangan")
 
         if silhouette_kmeans_pso > silhouette_kmeans and dbi_kmeans_pso < dbi_kmeans:
-            st.success("**K-Means optimasi PSO** lebih baik dari K-Means.")
-            st.info("✅ Silhouette Score K-Means optimasi PSO lebih tinggi (+ 0,092)")
-            st.info("✅ DBI K-Means optimasi PSO lebih rendah (- 0,142)")
+            st.success("**K-Means Optimasi PSO** menghasilkan kualitas klasterisasi yang lebih baik dibandingkan K-Means.")
+            st.info(f"✅ Silhouette Score K-Means Optimasi PSO lebih tinggi ({silhouette_kmeans_pso:.3f} > {silhouette_kmeans:.3f})")
+            st.info(f"✅ DBI K-Means Optimasi PSO lebih rendah ({dbi_kmeans_pso:.3f} < {dbi_kmeans:.3f})")
         elif silhouette_kmeans > silhouette_kmeans_pso and dbi_kmeans < dbi_kmeans_pso:
-            st.success("K-Means lebih baik dari K-Means PSO.")
-            st.info("✅ Silhouette Score K-Means lebih tinggi")
-            st.info("✅ DBI K-Means lebih rendah")
+            st.success("**K-Means** menghasilkan kualitas klasterisasi yang lebih baik dibandingkan K-Means Optimasi PSO.")
+            st.info(f"✅ Silhouette Score K-Means lebih tinggi ({silhouette_kmeans:.3f} > {silhouette_kmeans_pso:.3f})")
+            st.info(f"✅ DBI K-Means lebih rendah ({dbi_kmeans:.3f} < {dbi_kmeans_pso:.3f})")
         else:
             st.warning("Hasil tidak konklusif, perlu analisis lebih lanjut.")
             st.info(f"Silhouette Score — K-Means: {silhouette_kmeans:.3f} | K-Means PSO: {silhouette_kmeans_pso:.3f}")

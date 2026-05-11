@@ -276,7 +276,7 @@ with tab4:
 
         st.write("**_Recency:_** Menunjukkan jarak waktu sejak transaksi terakhir pelanggan.")
         st.write("**_Frequency:_** Menunjukkan frekuensi atau jumlah transaksi yang dilakukan pelanggan.")
-        st.write("**_Monetary:_** Menunjukkan total nilai transaksi yang dilakukan pelanggan.")
+        st.write("**_Monetary:_** Menunjukkan jumlah nilai transaksi (uang) yang dikeluarkan pelanggan.")
 
         st.write("")
 

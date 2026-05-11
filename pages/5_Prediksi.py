@@ -13,8 +13,6 @@ st.set_page_config(
 
 render_sidebar()
 
-
-
 # Memuat model dan scaler
 scaler_svm = joblib.load("model/scaler_svm.pkl")
 svm = joblib.load("model/svm_model.pkl")
@@ -29,13 +27,16 @@ if "frequency" not in st.session_state:
 if "monetary" not in st.session_state:
     st.session_state.monetary = 0
 
+#Fungsi reset hasil prediksi (saat input berubah/diedit)
+def reset_prediksi():
+    st.session_state.hasil_prediksi = None
+
 # Fungsi reset — langsung set nilai ke 0
 def mulai_ulang():
     st.session_state.hasil_prediksi = None
     st.session_state.recency   = 0
     st.session_state.frequency = 0
     st.session_state.monetary  = 0
-
 
 st.title("Prediksi Klaster Pelanggan")
 
@@ -51,40 +52,38 @@ st.info("""
 col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown("**Recency (hari)**")
-    st.caption("Jumlah hari sejak transaksi terakhir pelanggan")
-    recency = st.number_input("Recency (hari)", min_value=0, key="recency", label_visibility="collapsed")
+    st.caption("Jarak waktu (hari) sejak transaksi terakhir pelanggan")
+    recency = st.number_input(
+        "Recency (hari)", 
+        min_value=0, 
+        key="recency", 
+        label_visibility="collapsed",
+        on_change=reset_prediksi
+        )
 
 with col2:
     st.markdown("**Frequency (transaksi)**")
-    st.caption("Total jumlah transaksi yang pernah dilakukan")
-    frequency = st.number_input("Frequency (transaksi)", min_value=0, key="frequency", label_visibility="collapsed")
+    st.caption("Frekuensi atau jumlah transaksi yang dilakukan pelanggan")
+    frequency = st.number_input(
+        "Frequency (transaksi)", 
+        min_value=0, 
+        key="frequency", 
+        label_visibility="collapsed",
+        on_change=reset_prediksi
+        )
 
 with col3:
     st.markdown("**Monetary (Rp)**")
-    st.caption("Total keseluruhan uang yang telah dikeluarkan")
-    monetary = st.number_input("Monetary (Rp)", min_value=0, key="monetary", label_visibility="collapsed")
+    st.caption("Jumlah nilai transaksi (uang) yang dikeluarkan pelanggan")
+    monetary = st.number_input(
+        "Monetary (Rp)", 
+        min_value=0, 
+        key="monetary", 
+        label_visibility="collapsed",
+        on_change=reset_prediksi
+        )
 
 st.divider()
-
-# #Input user ver 2
-# st.markdown("**Recency (hari)**")
-# st.caption("Jumlah hari sejak transaksi terakhir pelanggan")
-# recency = st.number_input("Recency (hari)", min_value=0, key="recency", label_visibility="collapsed")
-
-# st.markdown("**Frequency (transaksi)**")
-# st.caption("Total jumlah transaksi yang pernah dilakukan")
-# frequency = st.number_input("Frequency (transaksi)", min_value=0, key="frequency", label_visibility="collapsed")
-
-# st.markdown("**Monetary (Rp)**")
-# st.caption("Total keseluruhan uang yang telah dikeluarkan (dalam Rupiah)")
-# monetary = st.number_input("Monetary (Rp)", min_value=0, key="monetary", label_visibility="collapsed")
-
-# st.divider()
-
-# # Input user — key sama dengan nama session_state
-# recency   = st.number_input("Recency (hari)",        min_value=0, key="recency")
-# frequency = st.number_input("Frequency (transaksi)", min_value=0, key="frequency")
-# monetary  = st.number_input("Monetary (Rp)",         min_value=0, key="monetary")
 
 # Tombol prediksi
 if st.session_state.hasil_prediksi is None:
