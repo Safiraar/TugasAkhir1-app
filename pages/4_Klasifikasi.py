@@ -28,9 +28,9 @@ with st.container():
 
     st.info(f"""**Parameter klasifikasi yang digunakan:**  \n
     - Data split = 70:30  \n
-    - Kernel = rbf (Radial Basis Function)  \n
-    - C = 1  \n
-    - Gamma = 0,05  
+    - Kernel = RBF (Radial Basis Function)  \n
+    - C = 0,1  \n
+    - Gamma = 0,1
     """)
 
 #Hasil klasifikasi 
